@@ -92,9 +92,9 @@ def getCPUloadPerProc():
         i += 1
     return processes_info
 
-def getMacAddress():
+def getMacAddress(wifi = 'wlan0'):
 
-    return str(os.popen('ifconfig wlan0 | grep -o -E \'([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}\'').readline())
+    return str(os.popen('ifconfig '+wifi+' | grep -o -E \'([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}\'').readline())
 
 
 if __name__ == "__main__":
