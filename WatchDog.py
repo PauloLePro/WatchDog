@@ -1,9 +1,11 @@
 import logging
+import logging.handlers
 import Sysinfo
 import re
 
 class WatchDog:
     def __init__(self):
+
         self.limiteRAM = 300
         self.limiteDisk = 30
         self.limiteTempCPU = 30.0  # en degré
@@ -12,13 +14,16 @@ class WatchDog:
         self.main(self._initlog())
 
     def _initlog(self):
+
+        nomFichierLog = str(Sysinfo.getMacAddress()+'.log')
+
         # create logger with 'spam_application'
         logger = logging.getLogger('log_application')
         logger.setLevel(logging.DEBUG)
         # create file handler which logs even debug messages
-        fichier = logging.FileHandler('watchdog.log')
+        fichier = logging.handlers.RotatingFileHandler(nomFichierLog, maxBytes=1048576, backupCount=10) # A 1 Mo il crée un nouveau fichier et peut crée 10 fichier différent
         fichier.setLevel(logging.DEBUG)
-        # create console handler with a higher log level
+        # create console handler with a higher loomg level
         console = logging.StreamHandler()
         console.setLevel(logging.ERROR)
         # create formatter and add it to the handlers
@@ -73,7 +78,7 @@ class WatchDog:
             #logger.error(self.infoDisk())
 
         if self.limiteRAM < int(Sysinfo.getRAMinfo()[1]):
-            logger.info(Sysinfo.getRAMinfo()[1])
+            logger.info('Ram utiliser = '+Sysinfo.getRAMinfo()[1])
             #logger.error(Sysinfo.getRAMinfo()[1])
 
         if self.limiteUseCPU < float(Sysinfo.getCPUuse()):

@@ -26,7 +26,7 @@ def getRAMinfo():
 
 # Return % of CPU used by user as a character string
 def getCPUuse():
-    return psutil.cpu_percent(0.1)
+    return psutil.cpu_percent(0.5)
 
 
 # Return information about disk space as a list (unit included)
@@ -72,7 +72,7 @@ def getCPUloadPerPID(pid=0):
             current_process = psutil.Process(pid=pid)
         except psutil.NoSuchProcess:
             return
-        current_process_load = current_process.cpu_percent(interval=0.1)
+        current_process_load = current_process.cpu_percent(interval=0.5)
         return current_process_load
     else:
         return
@@ -92,9 +92,15 @@ def getCPUloadPerProc():
         i += 1
     return processes_info
 
-def getMacAddress(wifi = 'wlan0'):
-
-    return str(os.popen('ifconfig '+wifi+' | grep -o -E \'([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}\'').readline())
+def getMacAddress(wifi='wlan0'):
+    adressemac = str(os.popen('ifconfig ' + wifi + ' | grep -o -E \'([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}\'').readline())
+    if len(adressemac) == 17:#La taille de la mac address est déjà bonne
+        return adressemac
+    else:
+        if len(adressemac) > 17:#On rabote la macaddress pour qu'elle fasse la bonne taille
+            return adressemac[:-(len(adressemac)-17)]
+        if len(adressemac) < 17: #Erreur macaddress trop petite
+            raise ValueError('MacAddress trop petite')
 
 
 if __name__ == "__main__":
