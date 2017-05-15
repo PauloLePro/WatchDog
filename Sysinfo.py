@@ -1,19 +1,16 @@
 import os
-import re
 import psutil
 
-#class SysInfo:
-
-# Return CPU temperature as a character string
+#Donne la température du CPU (retourne un string)
 def getCPUtemperature():
     res = os.popen('vcgencmd measure_temp').readline()
     return (res.replace("temp=", "").replace("'C\n", ""))
 
 
-# Return RAM information (unit=kb) in a list
-# Index 0: total RAM
-# Index 1: used RAM
-# Index 2: free RAM
+# Donne des informations relative à la RAM (en octets)
+# Index 0: RAM totale
+# Index 1: RAM utilisé
+# Index 2: RAM non utilisé
 def getRAMinfo():
     p = os.popen('free')
     i = 0
@@ -24,16 +21,16 @@ def getRAMinfo():
             return (line.split()[1:4])
 
 
-# Return % of CPU used by user as a character string
+# Donne le % de CPU utilisé (retourne un string)
 def getCPUuse():
     return psutil.cpu_percent(0.5)
 
 
-# Return information about disk space as a list (unit included)
-# Index 0: total disk space
-# Index 1: used disk space
-# Index 2: remaining disk space
-# Index 3: percentage of disk used
+# Renvoie des informations sur l'espace disque (liste)
+# Index 0: Espace disque total
+# Index 1: Espace disque utilisé
+# Index 2: Espace disque restant
+# Index 3: Pourcentage de disque utilisé
 def getDiskSpace():
     p = os.popen("df -h /")
     i = 0
@@ -43,8 +40,7 @@ def getDiskSpace():
         if i == 2:
             return (line.split()[1:5])
 
-#Return information about wifi and eth
-
+#Renvoie d'état de la wifi actif ou non
 def getInfoWifi(wifiname = 'wlan0'):
     p = psutil.net_if_stats()
 
@@ -54,7 +50,6 @@ def getInfoWifi(wifiname = 'wlan0'):
         print(error)
 
     return (wifi[0])
-
 
 def getInfoEth(ethname = 'eth0'):
     p = psutil.net_if_stats()
@@ -66,6 +61,7 @@ def getInfoEth(ethname = 'eth0'):
 
     return (eth[0])
 
+#Retourne le % d'utilisation du CPU en fonction PID
 def getCPUloadPerPID(pid=0):
     if not pid<0:
         try:
@@ -77,7 +73,7 @@ def getCPUloadPerPID(pid=0):
     else:
         return
 
-
+#Retourne le % CPU
 def getCPUloadPerProc():
     i = 0
     processes_info = []
@@ -92,6 +88,8 @@ def getCPUloadPerProc():
         i += 1
     return processes_info
 
+
+#Retourne l'adresse MAC du composant
 def getMacAddress(wifi='wlan0'):
     adressemac = str(os.popen('ifconfig ' + wifi + ' | grep -o -E \'([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}\'').readline())
     if len(adressemac) == 17:#La taille de la mac address est déjà bonne
@@ -101,52 +99,3 @@ def getMacAddress(wifi='wlan0'):
             return adressemac[:-(len(adressemac)-17)]
         if len(adressemac) < 17: #Erreur macaddress trop petite
             raise ValueError('MacAddress trop petite')
-
-
-if __name__ == "__main__":
-
-    #getDiskSpace test 1
-
-    regexpDisk = re.compile('(\d{1,3})+%', re.I)
-
-    match = regexpDisk.search(getDiskSpace()[3])
-    i = int(match.group(1))
-
-    if i > 30:
-        print(i)
-
-    #getCPUtemperature test 2
-
-    j = float(30)
-
-    if j < float(getCPUtemperature()):
-        print(getCPUtemperature())
-
-    #getRAMinfo test 3
-
-    a = int(300)
-
-    if a < int(getRAMinfo()[1]):
-        print(getRAMinfo()[1])
-
-    #getCPUuse test 4
-
-    b = float(0.0)
-
-    if b < float(getCPUuse()):
-        print(getCPUuse())
-        print(getCPUloadPerProc())
-
-    #getInfoWifi test 5
-
-    if (getInfoWifi() == True):
-        print(True)
-    else:
-        print(False)
-
-    #getInfoEth test 6
-
-    if (getInfoEth() == True):
-        print(True)
-    else:
-       print(False)

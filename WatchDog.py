@@ -2,40 +2,40 @@ import logging
 import logging.handlers
 import Sysinfo
 import re
+import time
+import os
+from logging.handlers import TimedRotatingFileHandler
 
+#Création de la classe WatchDog
 class WatchDog:
     def __init__(self):
 
-        self.limiteRAM = 300
-        self.limiteDisk = 30
-        self.limiteTempCPU = 30.0  # en degré
-        self.limiteUseCPU = 2.0 # % de cpu utilisé
+        self.logger = self._initlog()
 
-        self.main(self._initlog())
-
+    # Création du fichier de log
     def _initlog(self):
 
-        nomFichierLog = str(Sysinfo.getMacAddress()+'.log')
+        """"""
+        logger = logging.getLogger("Rotating Log")
+        logger.setLevel(logging.INFO)
 
-        # create logger with 'spam_application'
-        logger = logging.getLogger('log_application')
-        logger.setLevel(logging.DEBUG)
-        # create file handler which logs even debug messages
-        fichier = logging.handlers.RotatingFileHandler(nomFichierLog, maxBytes=1048576, backupCount=10) # A 1 Mo il crée un nouveau fichier et peut crée 10 fichier différent
-        fichier.setLevel(logging.DEBUG)
-        # create console handler with a higher loomg level
-        console = logging.StreamHandler()
-        console.setLevel(logging.ERROR)
-        # create formatter and add it to the handlers
+        nomFichierLog = str(Sysinfo.getMacAddress() + '.log')
+        file = open(nomFichierLog, "a")
+        file.close()
+
+        path = "/opt/testpaul/{}".format(nomFichierLog)
+
+        handler = TimedRotatingFileHandler(path, when="D", interval=1, backupCount=7)
+        logger.addHandler(handler)
+
         format = logging.Formatter('%(asctime)s - %(message)s')
-        fichier.setFormatter(format)
-        console.setFormatter(format)
-        # add the handlers to the logger
-        logger.addHandler(fichier)
-        logger.addHandler(console)
+        handler.setFormatter(format)
+
+    #    nomFichierLog = str(Sysinfo.getMacAddress()+'.log')
 
         return logger
 
+    # Vérification pour la Wifi
     def infoWifi(self):
         if (Sysinfo.getInfoWifi() == True):
             return (True)
@@ -48,6 +48,7 @@ class WatchDog:
         else:
             return (False)
 
+    # Gère l'affichage pour l'info disque (liste 3)
     def infoDisk(self):
         regexpDisk = re.compile('(\d{1,3})+%', re.I)
 
@@ -59,33 +60,35 @@ class WatchDog:
 
 ##########################################################################################################
 
-    def main(self, logger):
+    # On gère l'écriture dans le fichier de log des différentes informations
+    def write(self):
 
         if self.infoWifi() != True:
-            logger.info("wifi = False")
-            #logger.error("wifi = False")
+            self.logger.info("wifi = False")
+        else:
+            self.logger.info("wifi = True")
 
         if self.infoEth() != True:
-            logger.info("eth = False")
-            #logger.error("eth = False")
+            self.logger.info("eth = False")
+        else:
+            self.logger.info("eth = True")
 
-        if self.limiteTempCPU < float(Sysinfo.getCPUtemperature()):
-            logger.info('temperature CPU = '+Sysinfo.getCPUtemperature())
-            #logger.error(Sysinfo.getCPUtemperature())
+        self.logger.info('temperature CPU = '+Sysinfo.getCPUtemperature())
 
-        if self.infoDisk() > self.limiteDisk:
-            logger.info(self.infoDisk())
-            #logger.error(self.infoDisk())
+        self.logger.info('Utilisation du disque en % ='+str(self.infoDisk()))
 
-        if self.limiteRAM < int(Sysinfo.getRAMinfo()[1]):
-            logger.info('Ram utiliser = '+Sysinfo.getRAMinfo()[1])
-            #logger.error(Sysinfo.getRAMinfo()[1])
+        self.logger.info('Ram utiliser = '+Sysinfo.getRAMinfo()[1])
 
-        if self.limiteUseCPU < float(Sysinfo.getCPUuse()):
-            logger.info([self.getCPUuse(), self.getCPUloadPerProc()])
-            #logger.error([self.getCPUuse(), self.getCPUloadPerProc()])
+        self.logger.info('Utilisation du CPU en % ='+str(Sysinfo.getCPUuse()))
+
+        #self.logger.info(Sysinfo.getCPUloadPerProc())
 
 
+#Lance le script
 if __name__ == '__main__':
 
-    var = WatchDog()
+    wd = WatchDog()
+
+    while True:
+        wd.write()
+        time.sleep(30)
